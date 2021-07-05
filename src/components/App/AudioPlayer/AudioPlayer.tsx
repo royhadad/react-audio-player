@@ -92,20 +92,15 @@ const AudioPlayer: FC = () => {
 
     // Control the Audio object
     useEffect(function syncAudioSource(): void {
-        audio.current.src = currentSong?.url || '';
-        if (isPlaying) {
-            audio.current.play().then(noop);
+        if (audio.current.src !== currentSong?.url) {
+            audio.current.src = currentSong?.url || '';
         }
-    }, [currentSong]) // eslint-disable-line
-
-    useEffect(function syncIsPlaying(): void {
         if (isPlaying) {
             audio.current.play().then(noop);
         } else {
             audio.current.pause();
         }
-
-    }, [isPlaying])
+    }, [isPlaying, currentSong])
 
     if (isLoading) {
         return (<div>loading...</div>);
