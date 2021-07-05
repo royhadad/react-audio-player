@@ -1,68 +1,106 @@
-import {FC, useCallback, useEffect, useRef, useState} from 'react';
+import {FC, useCallback, useEffect, useReducer, useRef, useState} from 'react';
 import PlayCircleFilledWhiteIcon from '@material-ui/icons/PlayCircleFilledWhite';
 import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
-import styles from './styles'
 import axios from "axios";
+import styles from './styles'
 import Song from "../../../types/Song";
+import {noop} from "../../../utils";
 
-type Props = {};
+type ReducerState = {
+    songs: Song[],
+    currentSongIndex: number,
+    isPlaying: boolean,
+    currentSong: Song | undefined
+}
 
-const AudioPlayer: FC<Props> = (props: Props) => {
+type ReducerActions =
+    | { type: 'SET_SONGS', songs: Song[] }
+    | { type: 'SKIP_TO_PREVIOUS_SONG' }
+    | { type: 'SKIP_TO_NEXT_SONG' }
+    | { type: 'TOGGLE_PLAY' }
+
+const AudioPlayer: FC = () => {
     const classes = styles();
-    const [songs, setSongs] = useState<Song[]>([]);
+
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [currentSongIndex, setCurrentSongIndex] = useState<number>(0);
-    const [isPlaying, setIsPlaying] = useState<boolean>(false);
+    const [fetchError, setFetchError] = useState<string>('');
     const audio = useRef(new Audio(''));
 
+    const [entireState, dispatch] = useReducer((state: ReducerState, action: ReducerActions) => {
+        switch (action.type) {
+            case 'SET_SONGS':
+                return {
+                    ...state,
+                    songs: action.songs,
+                    currentSongIndex: 0,
+                    isPlaying: false,
+                    currentSong: action.songs[0]
+                };
+            case 'SKIP_TO_PREVIOUS_SONG':
+                const previousSongIndex = (state.currentSongIndex === 0) ? (state.songs.length - 1) : (state.currentSongIndex - 1)
+                return {
+                    ...state,
+                    currentSongIndex: previousSongIndex,
+                    currentSong: state.songs[previousSongIndex]
+                };
+            case 'SKIP_TO_NEXT_SONG':
+                const nextSongIndex = (state.currentSongIndex === state.songs.length - 1) ? (0) : (state.currentSongIndex + 1)
+                return {
+                    ...state,
+                    currentSongIndex: nextSongIndex,
+                    currentSong: state.songs[nextSongIndex]
+                };
+            case 'TOGGLE_PLAY':
+                return {
+                    ...state,
+                    isPlaying: !state.isPlaying
+                }
+            default:
+                return state;
+        }
+    }, {
+        songs: [],
+        currentSongIndex: 0,
+        isPlaying: false,
+        currentSong: undefined
+    });
+
+    const setSongs = (songs: Song[]) => (dispatch({type: 'SET_SONGS', songs}));
+    const skipToPreviousSong = () => (dispatch({type: 'SKIP_TO_PREVIOUS_SONG'}))
+    const skipToNextSong = () => (dispatch({type: 'SKIP_TO_NEXT_SONG'}))
+    const togglePlay = () => (dispatch({type: 'TOGGLE_PLAY'}))
+
+    const {isPlaying, currentSong} = entireState;
+
+    // Fetch songs on mount
     const fetchSongs = useCallback(async () => {
         setIsLoading(true);
-        const response = await axios.get('/api/songs');
-        const songs = response.data?.songs;
-        setSongs(songs);
+        const response = await axios.get<Song[]>('/api/songs');
+        setSongs(response.data);
+        dispatch({type: 'SET_SONGS', songs: response.data})
+        setFetchError('');
         setIsLoading(false);
     }, []);
 
-    const skipToNextSong = () => {
-        setCurrentSongIndex((currentSongIndex) => {
-            if (currentSongIndex === songs.length - 1) {
-                return 0;
-            } else {
-                return currentSongIndex + 1
-            }
-        })
-    }
-    const skipToPreviousSong = () => {
-        setCurrentSongIndex((currentSongIndex) => {
-            if (currentSongIndex === 0) {
-                return songs.length - 1;
-            } else {
-                return currentSongIndex - 1
-            }
-        })
-    }
-
-    useEffect(() => {
-        fetchSongs();
+    useEffect(function fetchOnMount(): void {
+        fetchSongs().catch(() => {
+            setFetchError('Error while fetching the songs...');
+        });
     }, [fetchSongs])
 
-    useEffect(() => {
-        audio.current.src = songs[currentSongIndex]?.url;
+    // Control the Audio object
+    useEffect(function syncAudioSource(): void {
+        audio.current.src = currentSong?.url || '';
         if (isPlaying) {
-            audio.current.play().then(r => {
-                console.log('r', r)
-            });
+            audio.current.play().then(noop);
         }
-        // eslint-disable-next-line
-    }, [currentSongIndex, songs])
+    }, [currentSong]) // eslint-disable-line
 
-    useEffect(() => {
+    useEffect(function syncIsPlaying(): void {
         if (isPlaying) {
-            audio.current.play().then(r => {
-                console.log('r', r)
-            });
+            audio.current.play().then(noop);
         } else {
             audio.current.pause();
         }
@@ -71,13 +109,11 @@ const AudioPlayer: FC<Props> = (props: Props) => {
 
     if (isLoading) {
         return (<div>loading...</div>);
+    } else if (fetchError) {
+        return (<div>{fetchError}</div>)
+    } else if (!currentSong) {
+        return (<div>error! invalid song!</div>);
     } else {
-        const currentSong = songs[currentSongIndex];
-        if (!currentSong) {
-            console.error('invalid song!')
-            return null;
-        }
-
         return (
             <div className={classes.root}>
                 <div className={classes.title}>{currentSong.title}</div>
@@ -86,13 +122,9 @@ const AudioPlayer: FC<Props> = (props: Props) => {
                 <div className={classes.bottomButtonsContainer}>
                     <SkipPreviousIcon fontSize='large' className={classes.button} onClick={skipToPreviousSong}/>
                     {isPlaying ? (
-                        <PauseCircleFilledIcon fontSize='large' className={classes.button} onClick={() => {
-                            setIsPlaying(false);
-                        }}/>
+                        <PauseCircleFilledIcon fontSize='large' className={classes.button} onClick={togglePlay}/>
                     ) : (
-                        <PlayCircleFilledWhiteIcon fontSize='large' className={classes.button} onClick={() => {
-                            setIsPlaying(true);
-                        }}/>
+                        <PlayCircleFilledWhiteIcon fontSize='large' className={classes.button} onClick={togglePlay}/>
                     )}
                     <SkipNextIcon fontSize='large' className={classes.button} onClick={skipToNextSong}/>
                 </div>

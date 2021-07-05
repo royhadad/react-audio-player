@@ -1,6 +1,6 @@
 import {makeStyles} from "@material-ui/core/styles";
 
-const flexCenter = {
+const flexCenterMixin = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center'
@@ -17,17 +17,15 @@ const styles = makeStyles((theme) => {
         },
         title: {
             fontSize: '30px',
-            margin: '10px 0px',
             height: '15%',
             textAlign: 'center',
-            ...flexCenter
+            ...flexCenterMixin
         },
         artist: {
             fontSize: '20px',
-            marginBottom: '5px',
             height: '10%',
             textAlign: 'center',
-            ...flexCenter
+            ...flexCenterMixin
         },
         coverArt: {
             maxWidth: '90%',
@@ -35,7 +33,6 @@ const styles = makeStyles((theme) => {
         },
         bottomButtonsContainer: {
             width: '100%',
-            margin: '10px 0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-evenly',
