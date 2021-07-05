@@ -1,0 +1,20 @@
+[
+  {
+    "title": "aaa",
+    "artist": "aa",
+    "coverArt": "a",
+    "url": "aaaa"
+  },
+  {
+    "title": "bbb",
+    "artist": "bb",
+    "coverArt": "b",
+    "url": "bbbb"
+  },
+  {
+    "title": "ccc",
+    "artist": "cc",
+    "coverArt": "c",
+    "url": "cccc"
+  }
+]
