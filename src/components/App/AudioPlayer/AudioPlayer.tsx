@@ -74,7 +74,6 @@ const AudioPlayer: FC = () => {
 
     const {isPlaying, currentSong} = entireState;
 
-    // Fetch songs on mount
     const fetchSongs = useCallback(async () => {
         setIsLoading(true);
         const response = await axios.get<Song[]>('/api/songs');
@@ -90,8 +89,7 @@ const AudioPlayer: FC = () => {
         });
     }, [fetchSongs])
 
-    // Control the Audio object
-    useEffect(function syncAudioSource(): void {
+    useEffect(function syncAudioObject(): void {
         if (audio.current.src !== currentSong?.url) {
             audio.current.src = currentSong?.url || '';
         }
