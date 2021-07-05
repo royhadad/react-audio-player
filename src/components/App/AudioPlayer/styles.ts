@@ -9,7 +9,6 @@ const flexCenter = {
 const styles = makeStyles((theme) => {
     return {
         root: {
-            border: '1px solid black',
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
@@ -19,18 +18,20 @@ const styles = makeStyles((theme) => {
         title: {
             fontSize: '30px',
             margin: '10px 0px',
-            flexGrow: 2,
+            height: '15%',
+            textAlign: 'center',
             ...flexCenter
         },
         artist: {
             fontSize: '20px',
             marginBottom: '5px',
-            flexGrow: 2,
+            height: '10%',
+            textAlign: 'center',
             ...flexCenter
         },
         coverArt: {
-            maxWidth: '80%',
-            flexGrow: 1
+            maxWidth: '90%',
+            height: '60%',
         },
         bottomButtonsContainer: {
             width: '100%',
@@ -38,7 +39,7 @@ const styles = makeStyles((theme) => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-evenly',
-            flexGrow: 4
+            height: '15%',
         },
         button: {
             '&:hover': {
