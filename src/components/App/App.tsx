@@ -1,5 +1,6 @@
 import React from 'react';
 import {makeStyles} from "@material-ui/core/styles";
+import AudioPlayer from "./AudioPlayer";
 
 const createClasses = makeStyles((theme) => {
     return {
@@ -17,7 +18,7 @@ const App: React.FC = () => {
 
     return (
         <div className={classes.root}>
-            
+            <AudioPlayer/>
         </div>
     );
 }
