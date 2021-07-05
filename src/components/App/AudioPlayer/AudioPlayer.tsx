@@ -1,4 +1,8 @@
 import {FC, useCallback, useEffect, useRef, useState} from 'react';
+import PlayCircleFilledWhiteIcon from '@material-ui/icons/PlayCircleFilledWhite';
+import PauseCircleFilledIcon from '@material-ui/icons/PauseCircleFilled';
+import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
+import SkipNextIcon from '@material-ui/icons/SkipNext';
 import styles from './styles'
 import axios from "axios";
 import Song from "../../../types/Song";
@@ -21,7 +25,7 @@ const AudioPlayer: FC<Props> = (props: Props) => {
         setIsLoading(false);
     }, []);
 
-    const goToNextSong = () => {
+    const skipToNextSong = () => {
         setCurrentSongIndex((currentSongIndex) => {
             if (currentSongIndex === songs.length - 1) {
                 return 0;
@@ -30,7 +34,7 @@ const AudioPlayer: FC<Props> = (props: Props) => {
             }
         })
     }
-    const goToPreviousSong = () => {
+    const skipToPreviousSong = () => {
         setCurrentSongIndex((currentSongIndex) => {
             if (currentSongIndex === 0) {
                 return songs.length - 1;
@@ -51,6 +55,7 @@ const AudioPlayer: FC<Props> = (props: Props) => {
                 console.log('r', r)
             });
         }
+        // eslint-disable-next-line
     }, [currentSongIndex, songs])
 
     useEffect(() => {
@@ -64,51 +69,36 @@ const AudioPlayer: FC<Props> = (props: Props) => {
 
     }, [isPlaying])
 
-    return (
-        <div>
-            Im an audio player!
-            {isLoading ? (
-                <div>loading...</div>
-            ) : (
-                <div>
-                    {(() => {
-                        const currentSong = songs[currentSongIndex];
-                        if (!currentSong) {
-                            console.error('invalid song!')
-                            return null;
-                        }
+    if (isLoading) {
+        return (<div>loading...</div>);
+    } else {
+        const currentSong = songs[currentSongIndex];
+        if (!currentSong) {
+            console.error('invalid song!')
+            return null;
+        }
 
-                        return (
-                            <div>
-                                <h3>{currentSong.title}</h3>
-                                <h4>{currentSong.artist}</h4>
-                                <img src={currentSong.coverArt} alt='cover art'/>
-                                <div>
-                                    <button onClick={goToPreviousSong}>previous</button>
-                                    {isPlaying ? (
-                                        <button onClick={() => {
-                                            setIsPlaying(false);
-                                        }}>stop</button>
-                                    ) : (
-                                        <button onClick={() => {
-                                            setIsPlaying(true);
-                                        }}>play</button>
-                                    )}
-                                    <button onClick={goToNextSong}>next</button>
-                                </div>
-
-                            </div>
-                        )
-                    })()}
+        return (
+            <div className={classes.root}>
+                <div className={classes.title}>{currentSong.title}</div>
+                <div className={classes.artist}>{currentSong.artist}</div>
+                <img src={currentSong.coverArt} alt='cover art' className={classes.coverArt}/>
+                <div className={classes.bottomButtonsContainer}>
+                    <SkipPreviousIcon fontSize='large' className={classes.button} onClick={skipToPreviousSong}/>
+                    {isPlaying ? (
+                        <PauseCircleFilledIcon fontSize='large' className={classes.button} onClick={() => {
+                            setIsPlaying(false);
+                        }}/>
+                    ) : (
+                        <PlayCircleFilledWhiteIcon fontSize='large' className={classes.button} onClick={() => {
+                            setIsPlaying(true);
+                        }}/>
+                    )}
+                    <SkipNextIcon fontSize='large' className={classes.button} onClick={skipToNextSong}/>
                 </div>
-            )}
-            {songs.map((song) => (
-                <div key={song.title}>
-                    {JSON.stringify(song)}
-                </div>
-            ))}
-        </div>
-    )
+            </div>
+        )
+    }
 }
 
 export default AudioPlayer;
