@@ -39,14 +39,14 @@ const AudioPlayer: FC = () => {
                     currentSong: action.songs[0]
                 };
             case 'SKIP_TO_PREVIOUS_SONG':
-                const previousSongIndex = (state.currentSongIndex === 0) ? (state.songs.length - 1) : (state.currentSongIndex - 1)
+                const previousSongIndex = (state.songs.length - 1) % state.songs.length;
                 return {
                     ...state,
                     currentSongIndex: previousSongIndex,
                     currentSong: state.songs[previousSongIndex]
                 };
             case 'SKIP_TO_NEXT_SONG':
-                const nextSongIndex = (state.currentSongIndex === state.songs.length - 1) ? (0) : (state.currentSongIndex + 1)
+                const nextSongIndex = (state.currentSongIndex + 1) % state.songs.length;
                 return {
                     ...state,
                     currentSongIndex: nextSongIndex,
